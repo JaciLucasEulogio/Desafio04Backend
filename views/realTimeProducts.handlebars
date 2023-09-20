@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos en Tiempo Real</title>
+</head>
+<body>
+    <h1>Productos en Tiempo Real</h1>
+    <ul id="productList">
+        {{#each products}}
+        <li>{{this.title}} - {{this.price}}</li>
+        {{/each}}
+    </ul>
+
+    <form id="productForm">
+        <input type="text" id="title" placeholder="Título del producto">
+        <input type="number" id="price" name="price" placeholder="Precio del producto">
+        <button type="submit">Agregar Producto</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Escuchar eventos de actualización de productos desde el servidor
+        socket.on("productAdded", (product) => {
+            const productList = document.getElementById("productList");
+            const listItem = document.createElement("li");
+            listItem.textContent = `${product.title} - ${product.price}`;
+            productList.appendChild(listItem);
+        });
+
+        // Manejar el envío del formulario para agregar productos
+        const productForm = document.getElementById("productForm");
+        productForm.addEventListener("submit", (event) => {
+            event.preventDefault(); // Evita que se realice la acción predeterminada del formulario
+            const title = document.getElementById("title").value;
+            const price = parseFloat(document.getElementById("price").value);
+            if (title && !isNaN(price)) {
+                // Enviar el formulario al servidor a través de WebSocket
+                socket.emit("addProduct", { name: title, description: "", price });
+                document.getElementById("title").value = "";
+                document.getElementById("price").value = "";
+            } else {
+                alert("Ingresa un título y un precio válidos.");
+            }
+        });
+    </script>
+</body>
+</html>
